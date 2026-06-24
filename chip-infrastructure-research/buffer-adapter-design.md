@@ -109,6 +109,66 @@ adapter output:
 
 This is not just storage. It is translation between two communication styles.
 
+## Routing Question: Does The CPU Need The Data?
+
+Before designing a buffer from one group back to the CPU, ask why the data is returning to the CPU.
+
+Example:
+
+```text
+GPU Group -> CPU Group -> Display Group
+```
+
+If the CPU is only acting as a router, that may be unnecessary.
+
+Maybe the better path is:
+
+```text
+GPU Group -> Display Group
+```
+
+Then the CPU only sends commands and receives status:
+
+```text
+CPU Group -> GPU Group: render this frame
+GPU Group -> Display Group: finished frame data
+GPU Group -> CPU Group: completion/status signal
+```
+
+This reduces traffic through the CPU and keeps large data close to the group that actually uses it.
+
+The design rule:
+
+```text
+route data to the group that needs it,
+not automatically back to the CPU
+```
+
+The CPU should coordinate when needed, but it should not become the default middleman for every data path.
+
+This matters most for large outputs:
+
+```text
+frames
+textures
+audio buffers
+AI tensors
+sensor streams
+storage blocks
+```
+
+For those, the CPU may only need:
+
+```text
+pointer
+status
+completion signal
+error code
+small metadata
+```
+
+The large payload can move directly between producer and consumer groups.
+
 ## Clock Rule Draft
 
 A first draft rule:

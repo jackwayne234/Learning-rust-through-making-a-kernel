@@ -149,6 +149,39 @@ communication inside a family can be specialized
 communication between families should be explicit and well-bounded
 ```
 
+## Avoid Unnecessary CPU Round Trips
+
+When one group produces data, ask which group actually needs that data.
+
+Do not assume every result must return to the CPU.
+
+Example:
+
+```text
+GPU family -> CPU group -> Display group
+```
+
+If the CPU is only routing frame data, the better design may be:
+
+```text
+GPU family -> Display group
+```
+
+Then the CPU handles coordination:
+
+```text
+CPU group -> GPU family: command
+GPU family -> CPU group: status/completion
+GPU family -> Display group: frame output
+```
+
+The principle:
+
+```text
+large data should move directly to the group that consumes it
+small control messages can go through the CPU
+```
+
 This creates a hierarchy:
 
 ```text
