@@ -232,6 +232,156 @@ power and heat
 idle time
 ```
 
+## First Ratio Test: Perfect Grid Assumption
+
+For the first model, assume the matrix grid has perfect uptime.
+
+Assumption:
+
+```text
+the entire matrix grid is available 100% of the time
+the grid itself does not fail
+the grid itself does not stall internally
+the grid is ready whenever the kernel gives it enough work
+```
+
+This lets us isolate one question:
+
+```text
+at what grid size does the kernel coordination become unmanageable?
+```
+
+In this model, if performance falls apart, blame the control path first, not the compute grid.
+
+## Kernel Coordination Budget
+
+The kernel must do coordination work such as:
+
+```text
+receive command
+validate command
+locate input buffers
+configure grid job
+start grid job
+watch or receive completion signal
+route output location
+update status
+accept the next job
+```
+
+The important comparison:
+
+```text
+kernel coordination time vs grid compute time
+```
+
+If:
+
+```text
+kernel coordination time << grid compute time
+```
+
+then the kernel is not the bottleneck.
+
+If:
+
+```text
+kernel coordination time ~= grid compute time
+```
+
+then the kernel is starting to matter.
+
+If:
+
+```text
+kernel coordination time > grid compute time
+```
+
+then the kernel can become unmanageable because it cannot keep the grid fed efficiently.
+
+## Simple Model
+
+Define:
+
+```text
+G = grid size, such as 16, 32, 64, or 100
+K = kernel coordination time per job
+C = grid compute time per job
+U = useful grid utilization
+```
+
+First rough utilization model:
+
+```text
+U = C / (C + K)
+```
+
+Examples:
+
+```text
+if K is 1% of C, utilization is about 99%
+if K is 10% of C, utilization is about 91%
+if K is 50% of C, utilization is about 67%
+if K equals C, utilization is about 50%
+```
+
+Working threshold:
+
+```text
+kernel coordination should stay under 10% of grid compute time
+```
+
+So:
+
+```text
+K <= 0.10 * C
+```
+
+If kernel coordination takes more than that, the grid size or job batching may need to change.
+
+## What This Test Will Tell Us
+
+This model helps decide whether one kernel should control:
+
+```text
+16x16 grid
+32x32 grid
+64x64 grid
+100x100 grid
+```
+
+If small grids finish too quickly, the kernel may spend too much time coordinating many tiny jobs.
+
+If huge grids require too much setup, too much data movement, or too much output handling, the kernel may also become overloaded.
+
+The best ratio is where:
+
+```text
+the grid has enough work to hide coordination cost
+but not so much work that input/output handling becomes unmanageable
+```
+
+## Next Model Inputs To Estimate
+
+To make this less hand-wavy, estimate:
+
+```text
+kernel command setup time
+input buffer setup time
+output routing time
+completion handling time
+grid compute time for 16x16
+grid compute time for 32x32
+grid compute time for 64x64
+grid compute time for 100x100
+```
+
+Then compare each grid size using:
+
+```text
+U = C / (C + K)
+```
+
 ## One-Bite Roadmap
 
 1. Write one character to the screen.
