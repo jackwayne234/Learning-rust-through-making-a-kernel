@@ -1,0 +1,87 @@
+# Group Design Principles
+
+## Communication First, Groups Second
+
+A compute group boundary should be chosen after we understand the communication paths.
+
+The key idea:
+
+```text
+group design follows communication design
+```
+
+Before deciding what groups the chip needs, ask:
+
+```text
+who needs to talk to whom?
+how often?
+how fast?
+how much data moves?
+does the data need to be durable?
+does the data need to be private?
+does the exchange need to happen on a shared clock?
+can the exchange wait?
+what happens if the receiver is busy?
+```
+
+The answers shape the groups.
+
+## Why This Matters
+
+A group boundary is not just a box on a diagram.
+
+It creates a communication problem.
+
+If two jobs constantly exchange tiny urgent signals, they may need to be close together, clocked together, or connected by a very fast buffer.
+
+If two jobs only exchange slow durable state, they can be separated more cleanly and communicate through a database-like or log-like layer.
+
+So the design process should be:
+
+```text
+1. List communication methods
+2. List each method's strengths and weaknesses
+3. List workloads and jobs
+4. Match each workload to a communication method
+5. Then decide the compute groups
+```
+
+## Communication Options Shape Group Boundaries
+
+```text
+shared memory / ring buffer
+- best for fast repeated data movement
+- bad for complex shared truth
+
+interrupts
+- best for urgent attention
+- bad for carrying large data
+
+message passing
+- best for commands and coordination
+- bad for giant payloads unless paired with memory buffers
+
+SQL/database-like layer
+- best for durable shared state
+- bad for nanosecond real-time work
+
+same-clock pipeline
+- best for predictable flow
+- bad for flexible unpredictable workloads
+```
+
+## Design Rule
+
+Do not start by asking:
+
+```text
+How many groups should we have?
+```
+
+Start by asking:
+
+```text
+What must move between parts of the system?
+```
+
+Then the groups become easier to see.

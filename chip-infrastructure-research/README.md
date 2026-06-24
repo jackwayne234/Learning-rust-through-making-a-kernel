@@ -170,10 +170,13 @@ When we learn message passing, we are learning how different kernels or compute 
 
 ```text
 communication-models.md
+group-design-principles.md
 one-bite-roadmap.md
 ```
 
 This note explores designated memory addresses, conveyor-belt buffers, shared clocks, message passing, interrupts, and slower application-layer communication.
+
+The group design note records the architecture rule that communication should be mapped before deciding the compute group boundaries.
 
 The roadmap note keeps the project grounded in small steps: build one tiny piece, explain it, document it, commit it, then move to the next bite.
 
