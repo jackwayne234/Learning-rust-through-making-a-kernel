@@ -192,7 +192,7 @@ This note explores designated memory addresses, conveyor-belt buffers, shared cl
 
 The group design note records the architecture rule that communication should be mapped before deciding the compute group boundaries.
 
-The matrix multiplication note records the first specialized kernel target and the smallest path toward making it real.
+The matrix multiplication note records the first specialized kernel target, including the open question of the most efficient matrix-grid-to-kernel ratio.
 
 The monitoring note describes passive link taps and out-of-band health alerts that should not slow the main data path.
 

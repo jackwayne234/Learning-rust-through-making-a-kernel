@@ -140,6 +140,98 @@ completion signal
 monitoring signals
 ```
 
+## Grid Size To Kernel Ratio
+
+Important research question:
+
+```text
+what is the most efficient ratio of matrix grid size to kernel control?
+```
+
+For CPU groups, the question might look like:
+
+```text
+how many CPU cores should one kernel control?
+```
+
+For a matrix multiplication chip, the better question is:
+
+```text
+how large of a matrix tile/grid should one kernel control?
+```
+
+Possible ratio language:
+
+```text
+1 kernel : 1 matrix tile engine
+1 kernel : 16x16 compute grid
+1 kernel : 32x32 compute grid
+1 kernel : 64x64 compute grid
+1 kernel : 100x100 compute grid
+```
+
+The right ratio depends on whether the kernel spends too much time coordinating instead of letting the grid compute.
+
+## Coordination Overhead
+
+The kernel should not become the bottleneck for the matrix grid.
+
+Questions to test:
+
+```text
+Can the kernel feed inputs fast enough?
+Can it start jobs fast enough?
+Can it collect or route results fast enough?
+Does it spend too much time scheduling?
+Does it spend too much time handling completion signals?
+Does the grid sit idle waiting for commands?
+Does the output buffer fill before the kernel routes results?
+```
+
+If the grid is too small, the kernel may spend too much time coordinating many tiny jobs.
+
+If the grid is too large, it may be hard to feed with enough data, and parts of the grid may sit idle.
+
+The goal is a balanced point:
+
+```text
+kernel coordination overhead is small
+grid utilization is high
+input buffers stay fed
+output buffers drain predictably
+```
+
+## Ratio Hypothesis
+
+A first hypothesis:
+
+```text
+1 kernel : 1 matrix tile engine : 32x32 compute grid
+```
+
+This is not a final answer.
+
+It is a starting point to compare against:
+
+```text
+16x16
+32x32
+64x64
+100x100
+```
+
+The best ratio should be discovered by modeling:
+
+```text
+coordination time
+compute time
+input bandwidth
+output bandwidth
+buffer depth
+power and heat
+idle time
+```
+
 ## One-Bite Roadmap
 
 1. Write one character to the screen.
