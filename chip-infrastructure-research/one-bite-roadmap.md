@@ -26,6 +26,29 @@ what the next bite is
 
 The notes are part of the project, not an afterthought.
 
+## Learning Draft Format
+
+For hands-on code bites, keep a pasteable learning draft in:
+
+```text
+learning-drafts/
+```
+
+Each draft should be formatted like a short paper for humans, but every explanation line should be commented out with `//` so the same file can be pasted into Rust.
+
+Use this pattern:
+
+```text
+title and purpose
+hardware picture
+architecture note
+sectioned code
+hardware/CPU meaning before Rust syntax meaning
+next bite
+```
+
+This keeps the learning path readable without separating the explanation from the code.
+
 ## The Next Bites
 
 ### First Specialized Kernel Target
@@ -240,3 +263,57 @@ committed
 ```
 
 Then take the next bite.
+
+## Progress Log
+
+### Bite 1 Complete: Write One Character To The Screen
+
+What we built:
+
+```text
+the kernel writes M into the first VGA text cell
+```
+
+What the CPU or hardware is doing:
+
+```text
+CPU stores byte 0x4d at memory address 0xb8000
+CPU stores color byte 0x0a at memory address 0xb8001
+VGA text hardware treats those two bytes as one visible screen cell
+```
+
+Rust concept that appeared:
+
+```text
+raw pointer
+unsafe block
+volatile write
+```
+
+Why `volatile` matters:
+
+```text
+this write is meant for hardware, not normal memory
+the compiler must not remove it just because no Rust variable reads it later
+```
+
+Important architecture note:
+
+```text
+VGA output is only a temporary way for us to visually inspect the kernel
+the real matrix multiplier output probably should not be VGA/display output
+after the visible proof works, the real output path should become a known result buffer
+```
+
+How it connects to the matrix firmware idea:
+
+```text
+this is the smallest proof that the kernel can write to a known hardware-like address
+later, the matrix firmware result can be written to a result buffer instead
+```
+
+Next bite:
+
+```text
+print a small number
+```

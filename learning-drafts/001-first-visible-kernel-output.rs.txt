@@ -1,0 +1,310 @@
+// ============================================================================
+// Learning Draft: First Visible Kernel Output
+// ============================================================================
+//
+// File this will eventually become:
+//
+//     src/main.rs
+//
+// This file is written like a paper for humans, but it is still pasteable into
+// Rust because every explanation line starts with //.
+//
+// Rust ignores // comments.
+//
+// ============================================================================
+// 1. Purpose
+// ============================================================================
+//
+// The goal of this bite is simple:
+//
+//     Make the kernel write one visible character to the screen.
+//
+// We are not using println.
+// We are not asking macOS, Linux, or Windows to display anything.
+// We are writing the kind of low-level code that an operating system normally
+// hides from normal programs.
+//
+// ============================================================================
+// 2. Hardware Picture
+// ============================================================================
+//
+// The CPU writes bytes into a special memory address:
+//
+//     0xb8000
+//
+// On old PC-style VGA text output, that address is treated as screen text.
+//
+// Each visible screen cell uses two bytes:
+//
+//     byte 1: the character
+//     byte 2: the color
+//
+// For the first screen cell:
+//
+//     0xb8000 = character byte
+//     0xb8001 = color byte
+//
+// In this draft, we write:
+//
+//     0xb8000 = M
+//     0xb8001 = light green on black
+//
+// So the first cell should show:
+//
+//     a green M
+//
+// ============================================================================
+// 3. Architecture Note
+// ============================================================================
+//
+// VGA is not the real matrix multiplier output path.
+//
+// VGA is our temporary passive link tap:
+//
+//     real machine path:
+//         matrix code -> result buffer
+//
+//     temporary human-view path:
+//         matrix code -> VGA screen
+//
+// This lets us see whether the machine did what we asked while we are learning.
+// Later, the real output should go into a known result buffer.
+//
+// ============================================================================
+// 4. Code
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// 4.1 Kernel Mode Setup
+// ----------------------------------------------------------------------------
+
+// Hardware/CPU:
+// There is no operating system underneath this kernel to provide files,
+// terminals, threads, or normal program startup.
+//
+// Rust:
+// Use core instead of the normal standard library.
+#![no_std]
+
+// Hardware/CPU:
+// A normal app starts through an operating system. This kernel starts through
+// the bootloader.
+//
+// Rust:
+// Do not look for a normal fn main().
+#![no_main]
+
+// ----------------------------------------------------------------------------
+// 4.2 Imports
+// ----------------------------------------------------------------------------
+
+// Hardware/CPU:
+// We need a way to send a real CPU instruction directly to the processor.
+//
+// Rust:
+// asm lets us write inline assembly, such as the hlt instruction.
+use core::arch::asm;
+
+// Hardware/CPU:
+// If the kernel hits a serious Rust error, there is no OS to catch it or print
+// a normal crash message.
+//
+// Rust:
+// PanicInfo is the type Rust passes into our panic handler.
+use core::panic::PanicInfo;
+
+// Hardware/CPU:
+// We are writing to hardware-like memory. The write matters even if normal Rust
+// code never reads that memory back.
+//
+// Rust:
+// write_volatile tells the compiler not to remove or rearrange this hardware
+// write as if it were useless.
+use core::ptr::write_volatile;
+
+// Hardware/CPU:
+// The bootloader starts the machine, prepares basic startup information, then
+// hands control to our kernel.
+//
+// Rust:
+// entry_point marks our kernel start function.
+// BootInfo is the startup information type from the bootloader.
+use bootloader_api::{entry_point, BootInfo};
+
+// ----------------------------------------------------------------------------
+// 4.3 VGA Constants
+// ----------------------------------------------------------------------------
+
+// Hardware/CPU:
+// 0xb8000 is the start of VGA text memory.
+//
+// Rust:
+// This creates a raw pointer to byte-sized memory.
+// *mut u8 means "raw changeable pointer to bytes."
+const VGA_TEXT_BUFFER: *mut u8 = 0xb8000 as *mut u8;
+
+// Hardware/CPU:
+// VGA reads this byte as a color value: light green text on black background.
+//
+// Rust:
+// This is a byte-sized constant written in hexadecimal.
+const VGA_LIGHT_GREEN_ON_BLACK: u8 = 0x0a;
+
+// ----------------------------------------------------------------------------
+// 4.4 CPU Halt Helper
+// ----------------------------------------------------------------------------
+
+// Hardware/CPU:
+// This function tells the CPU to sleep.
+//
+// Rust:
+// This creates a reusable function named halt.
+fn halt() {
+    // Hardware/CPU:
+    // The next instruction talks directly to the processor, so Rust cannot
+    // prove it is safe for us.
+    //
+    // Rust:
+    // unsafe means we are taking responsibility for this low-level operation.
+    unsafe {
+        // Hardware/CPU:
+        // hlt is an x86 CPU instruction. It stops the CPU until an interrupt
+        // wakes it.
+        //
+        // Rust:
+        // Emit the real processor instruction named hlt.
+        asm!("hlt");
+    }
+}
+
+// ----------------------------------------------------------------------------
+// 4.5 Kernel Entry Point
+// ----------------------------------------------------------------------------
+
+// Hardware/CPU:
+// Tell the bootloader where to jump after it prepares the machine.
+//
+// Rust:
+// This macro creates the correct low-level wrapper around kernel_main.
+entry_point!(kernel_main);
+
+// Hardware/CPU:
+// This is where our kernel begins after the bootloader transfers control.
+//
+// Rust:
+// _boot_info is startup information from the bootloader. The underscore means
+// we are intentionally not using it yet.
+//
+// -> ! means this function never returns.
+fn kernel_main(_boot_info: &'static mut BootInfo) -> ! {
+    // Hardware/CPU:
+    // Write M and its color into the first VGA screen cell.
+    //
+    // Rust:
+    // 0 means screen cell zero, the top-left cell.
+    // b'M' means the byte value for the character M.
+    write_screen_byte(0, b'M', VGA_LIGHT_GREEN_ON_BLACK);
+
+    // Hardware/CPU:
+    // After writing the screen byte, the kernel must stay alive. It cannot
+    // return to an operating system, because there is no operating system.
+    //
+    // Rust:
+    // Loop forever.
+    loop {
+        // Hardware/CPU:
+        // Sleep the CPU while we wait.
+        //
+        // Rust:
+        // Call our halt helper.
+        halt();
+    }
+}
+
+// ----------------------------------------------------------------------------
+// 4.6 Write One VGA Screen Cell
+// ----------------------------------------------------------------------------
+
+// Hardware/CPU:
+// This function writes one visible screen cell.
+//
+// Rust:
+// cell is which screen cell to write.
+// character is the byte for the letter or symbol.
+// color is the byte for the VGA color.
+fn write_screen_byte(cell: usize, character: u8, color: u8) {
+    // Hardware/CPU:
+    // Each VGA text cell uses two bytes.
+    //
+    //     cell 0 starts at offset 0
+    //     cell 1 starts at offset 2
+    //     cell 2 starts at offset 4
+    //
+    // Rust:
+    // Convert the cell number into a byte offset.
+    let byte_offset = cell * 2;
+
+    // Hardware/CPU:
+    // We are about to write to raw memory. Rust cannot prove this address is
+    // safe, but we know this address is the VGA text buffer in this boot setup.
+    //
+    // Rust:
+    // Start an unsafe block for raw pointer writes.
+    unsafe {
+        // Hardware/CPU:
+        // Write the character byte into VGA memory.
+        //
+        // For cell 0, this writes to:
+        //
+        //     0xb8000
+        //
+        // Rust:
+        // Move the raw pointer forward by byte_offset, then write character.
+        write_volatile(VGA_TEXT_BUFFER.add(byte_offset), character);
+
+        // Hardware/CPU:
+        // Write the color byte into the next VGA memory byte.
+        //
+        // For cell 0, this writes to:
+        //
+        //     0xb8001
+        //
+        // Rust:
+        // Move the raw pointer forward by byte_offset + 1, then write color.
+        write_volatile(VGA_TEXT_BUFFER.add(byte_offset + 1), color);
+    }
+}
+
+// ----------------------------------------------------------------------------
+// 4.7 Panic Handler
+// ----------------------------------------------------------------------------
+
+// Hardware/CPU:
+// If the kernel panics, there is no operating system to receive the crash.
+//
+// Rust:
+// Mark the next function as Rust's panic handler for this bare-metal program.
+#[panic_handler]
+// Hardware/CPU:
+// This is where the CPU goes if Rust hits a panic.
+//
+// Rust:
+// _info contains panic details, but we are not printing them yet.
+// -> ! means this function never returns.
+fn panic(_info: &PanicInfo) -> ! {
+    // Hardware/CPU:
+    // Put the CPU to sleep forever instead of trying to return to an operating
+    // system that does not exist.
+    //
+    // Rust:
+    // Loop forever and repeatedly call halt.
+    loop {
+        halt();
+    }
+}
+
+// ============================================================================
+// 5. Next Bite
+// ============================================================================
+//
+// Change the draft so the kernel can print a small number.

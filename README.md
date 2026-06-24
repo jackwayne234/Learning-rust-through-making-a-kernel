@@ -528,4 +528,54 @@ kernel_main repeatedly runs hlt
 CPU sleeps until an interrupt happens
 ```
 
-The next useful step is to write text directly to the screen, without `println!`.
+## Step 17: Write One Character To VGA Text Memory
+
+The first visible hardware action is writing one character to the screen.
+
+What the CPU does:
+
+```text
+store the letter byte M at address 0xb8000
+store the color byte at address 0xb8001
+then halt and wait
+```
+
+On old PC-style VGA text output, each screen cell uses two bytes:
+
+```text
+byte 1 = character
+byte 2 = color
+```
+
+So this pair:
+
+```text
+0xb8000 = M
+0xb8001 = light green on black
+```
+
+means the first cell on the screen should show a green `M`.
+
+Important architecture note:
+
+```text
+VGA is only our temporary way to see what the kernel did
+the real matrix multiplier output should later go into a known result buffer
+```
+
+Rust pieces used:
+
+```text
+raw pointer     = a direct memory address
+unsafe          = Rust asks us to mark code where we promise the address is valid
+write_volatile  = tell the compiler this write matters even if Rust code never reads it
+```
+
+Why this matters for the matrix path:
+
+```text
+first we prove the kernel can write to a known address
+then we can write matrix results to a known output buffer
+```
+
+The next useful step is to print a small number, still using VGA only as a temporary debugging window.
