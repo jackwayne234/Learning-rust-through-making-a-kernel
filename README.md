@@ -2,6 +2,16 @@
 
 These notes track the exact path we are taking while building a tiny bare-metal Rust kernel.
 
+## Research Track
+
+The kernel build is the hands-on path. The bigger architecture idea lives here:
+
+```text
+chip-infrastructure-research/
+```
+
+That folder is for exploring chip-level infrastructure: specialized CPU groups, specialized kernels, on-chip message passing, and how much time could be saved compared with networked systems.
+
 ## Big Picture
 
 A normal program runs like this:
