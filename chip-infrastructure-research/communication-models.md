@@ -178,6 +178,14 @@ latency
 
 This keeps the system predictable even when the two sides run at different speeds.
 
+A first rule of thumb:
+
+```text
+the adapter should not be the bottleneck during normal operation
+```
+
+More precisely, the adapter needs enough throughput and buffer depth to handle the connected groups, including bursts.
+
 ## 4. Message Passing
 
 Instead of letting one group write raw data anywhere, groups can send structured messages.

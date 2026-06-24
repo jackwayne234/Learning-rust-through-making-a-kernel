@@ -178,10 +178,13 @@ When we learn message passing, we are learning how different kernels or compute 
 ## Notes
 
 ```text
+buffer-adapter-design.md
 communication-models.md
 group-design-principles.md
 one-bite-roadmap.md
 ```
+
+The buffer adapter note tracks the idea that different-clock or different-width groups may need a predictable communication adapter with known limits.
 
 This note explores designated memory addresses, conveyor-belt buffers, shared clocks, message passing, interrupts, and slower application-layer communication.
 
