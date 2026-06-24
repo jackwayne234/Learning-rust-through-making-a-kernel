@@ -33,7 +33,7 @@ The notes are part of the project, not an afterthought.
 Decision:
 
 ```text
-the first specialized kernel target is matrix multiplication
+the first specialized kernel/firmware target is matrix multiplication
 ```
 
 The immediate practical path is still tiny:

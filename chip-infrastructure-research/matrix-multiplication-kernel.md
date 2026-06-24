@@ -1,14 +1,29 @@
-# Matrix Multiplication Kernel
+# Matrix Multiplication Kernel / Firmware
 
 Decision:
 
 ```text
-the first specialized kernel target is a matrix multiplication kernel
+the first specialized target is a matrix multiplication kernel/firmware
 ```
 
-This means the first real "job kernel" should be designed around multiplying matrices, not around being a general-purpose operating system.
+This means the first real "job controller" should be designed around multiplying matrices, not around being a general-purpose operating system.
 
-## Why This Kernel
+The better word may be firmware.
+
+For a CPU group, "kernel" makes sense because the software controls general-purpose CPU cores.
+
+For a matrix multiplication grid, the controller may be more like:
+
+```text
+firmware
+microcontroller runtime
+tile controller
+accelerator controller
+```
+
+The job is not to behave like a full operating system. The job is to configure the matrix grid, feed it work, collect status, and expose a bounded communication interface.
+
+## Why This Target
 
 Matrix multiplication is a good first target because it has clear inputs, clear outputs, and real architecture pressure.
 
@@ -101,9 +116,9 @@ then print the matrix result
 Later, this can become a specialized compute group:
 
 ```text
-CPU/Coordinator Group -> Matrix Kernel Group: input matrices
-Matrix Kernel Group -> Output Buffer: result matrix
-Matrix Kernel Group -> Monitor Layer: status/health
+CPU/Coordinator Group -> Matrix Firmware Group: input matrices
+Matrix Firmware Group -> Output Buffer: result matrix
+Matrix Firmware Group -> Monitor Layer: status/health
 ```
 
 Large data should not automatically return through the CPU unless the CPU needs it.
@@ -111,7 +126,7 @@ Large data should not automatically return through the CPU unless the CPU needs 
 Possible better path:
 
 ```text
-Input Buffer -> Matrix Kernel Group -> Result Buffer -> Consumer Group
+Input Buffer -> Matrix Firmware Group -> Result Buffer -> Consumer Group
 ```
 
 The CPU may only need:
@@ -140,12 +155,12 @@ completion signal
 monitoring signals
 ```
 
-## Grid Size To Kernel Ratio
+## Grid Size To Controller Ratio
 
 Important research question:
 
 ```text
-what is the most efficient ratio of matrix grid size to kernel control?
+what is the most efficient ratio of matrix grid size to controller/firmware?
 ```
 
 For CPU groups, the question might look like:
@@ -157,45 +172,45 @@ how many CPU cores should one kernel control?
 For a matrix multiplication chip, the better question is:
 
 ```text
-how large of a matrix tile/grid should one kernel control?
+how large of a matrix tile/grid should one controller manage?
 ```
 
 Possible ratio language:
 
 ```text
-1 kernel : 1 matrix tile engine
-1 kernel : 16x16 compute grid
-1 kernel : 32x32 compute grid
-1 kernel : 64x64 compute grid
-1 kernel : 100x100 compute grid
+1 controller : 1 matrix tile engine
+1 controller : 16x16 compute grid
+1 controller : 32x32 compute grid
+1 controller : 64x64 compute grid
+1 controller : 100x100 compute grid
 ```
 
-The right ratio depends on whether the kernel spends too much time coordinating instead of letting the grid compute.
+The right ratio depends on whether the controller spends too much time coordinating instead of letting the grid compute.
 
 ## Coordination Overhead
 
-The kernel should not become the bottleneck for the matrix grid.
+The controller should not become the bottleneck for the matrix grid.
 
 Questions to test:
 
 ```text
-Can the kernel feed inputs fast enough?
+Can the controller feed inputs fast enough?
 Can it start jobs fast enough?
 Can it collect or route results fast enough?
 Does it spend too much time scheduling?
 Does it spend too much time handling completion signals?
 Does the grid sit idle waiting for commands?
-Does the output buffer fill before the kernel routes results?
+Does the output buffer fill before the controller routes results?
 ```
 
-If the grid is too small, the kernel may spend too much time coordinating many tiny jobs.
+If the grid is too small, the controller may spend too much time coordinating many tiny jobs.
 
 If the grid is too large, it may be hard to feed with enough data, and parts of the grid may sit idle.
 
 The goal is a balanced point:
 
 ```text
-kernel coordination overhead is small
+controller coordination overhead is small
 grid utilization is high
 input buffers stay fed
 output buffers drain predictably
@@ -206,7 +221,7 @@ output buffers drain predictably
 A first hypothesis:
 
 ```text
-1 kernel : 1 matrix tile engine : 32x32 compute grid
+1 controller : 1 matrix tile engine : 32x32 compute grid
 ```
 
 This is not a final answer.
@@ -242,20 +257,20 @@ Assumption:
 the entire matrix grid is available 100% of the time
 the grid itself does not fail
 the grid itself does not stall internally
-the grid is ready whenever the kernel gives it enough work
+the grid is ready whenever the controller gives it enough work
 ```
 
 This lets us isolate one question:
 
 ```text
-at what grid size does the kernel coordination become unmanageable?
+at what grid size does the controller coordination become unmanageable?
 ```
 
 In this model, if performance falls apart, blame the control path first, not the compute grid.
 
-## Kernel Coordination Budget
+## Controller Coordination Budget
 
-The kernel must do coordination work such as:
+The controller must do coordination work such as:
 
 ```text
 receive command
@@ -272,32 +287,32 @@ accept the next job
 The important comparison:
 
 ```text
-kernel coordination time vs grid compute time
+controller coordination time vs grid compute time
 ```
 
 If:
 
 ```text
-kernel coordination time << grid compute time
+controller coordination time << grid compute time
 ```
 
-then the kernel is not the bottleneck.
+then the controller is not the bottleneck.
 
 If:
 
 ```text
-kernel coordination time ~= grid compute time
+controller coordination time ~= grid compute time
 ```
 
-then the kernel is starting to matter.
+then the controller is starting to matter.
 
 If:
 
 ```text
-kernel coordination time > grid compute time
+controller coordination time > grid compute time
 ```
 
-then the kernel can become unmanageable because it cannot keep the grid fed efficiently.
+then the controller can become unmanageable because it cannot keep the grid fed efficiently.
 
 ## Simple Model
 
@@ -305,7 +320,7 @@ Define:
 
 ```text
 G = grid size, such as 16, 32, 64, or 100
-K = kernel coordination time per job
+K = controller coordination time per job
 C = grid compute time per job
 U = useful grid utilization
 ```
@@ -328,7 +343,7 @@ if K equals C, utilization is about 50%
 Working threshold:
 
 ```text
-kernel coordination should stay under 10% of grid compute time
+controller coordination should stay under 10% of grid compute time
 ```
 
 So:
@@ -337,11 +352,11 @@ So:
 K <= 0.10 * C
 ```
 
-If kernel coordination takes more than that, the grid size or job batching may need to change.
+If controller coordination takes more than that, the grid size or job batching may need to change.
 
 ## What This Test Will Tell Us
 
-This model helps decide whether one kernel should control:
+This model helps decide whether one controller should manage:
 
 ```text
 16x16 grid
@@ -350,9 +365,9 @@ This model helps decide whether one kernel should control:
 100x100 grid
 ```
 
-If small grids finish too quickly, the kernel may spend too much time coordinating many tiny jobs.
+If small grids finish too quickly, the controller may spend too much time coordinating many tiny jobs.
 
-If huge grids require too much setup, too much data movement, or too much output handling, the kernel may also become overloaded.
+If huge grids require too much setup, too much data movement, or too much output handling, the controller may also become overloaded.
 
 The best ratio is where:
 
@@ -366,7 +381,7 @@ but not so much work that input/output handling becomes unmanageable
 To make this less hand-wavy, estimate:
 
 ```text
-kernel command setup time
+controller command setup time
 input buffer setup time
 output routing time
 completion handling time
