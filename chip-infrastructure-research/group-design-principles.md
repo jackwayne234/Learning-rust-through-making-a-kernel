@@ -68,6 +68,77 @@ If two jobs constantly exchange tiny urgent signals, they may need to be close t
 
 If two jobs only exchange slow durable state, they can be separated more cleanly and communicate through a database-like or log-like layer.
 
+## Same-Type Groups vs Cross-Type Groups
+
+There is a difference between communication inside a group family and communication between different group families.
+
+Example:
+
+```text
+GPU Group 1
+GPU Group 2
+GPU Group 3
+GPU Group 4
+```
+
+These four GPU groups may communicate with each other in a specialized way because they do similar work, use similar data, and may share the same timing assumptions.
+
+That is same-type communication:
+
+```text
+GPU group -> GPU group
+```
+
+It may use:
+
+```text
+shared tile buffers
+frame partitions
+same-clock pipelines
+high-bandwidth local links
+work-stealing queues
+```
+
+But the whole GPU family talking to a different kind of group is a different problem.
+
+Example:
+
+```text
+GPU family -> General CPU Group
+GPU family -> Memory/Data Group
+GPU family -> Display/I/O Group
+```
+
+That is cross-type communication.
+
+It may need:
+
+```text
+clear command messages
+input/output buffers
+format conversion
+permission checks
+completion signals
+slower but more general protocols
+```
+
+The design principle:
+
+```text
+communication inside a family can be specialized
+communication between families should be explicit and well-bounded
+```
+
+This creates a hierarchy:
+
+```text
+within-family communication
+between-family communication
+whole-system communication
+```
+
+Each layer can have different speed, rules, and safety requirements.
+
 So the design process should be:
 
 ```text
