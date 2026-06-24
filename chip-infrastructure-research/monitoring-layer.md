@@ -30,6 +30,54 @@ The monitor only observes enough information to detect problems.
 
 It should not be required for the transfer to complete.
 
+## IT Infrastructure Analogy
+
+This layer is similar in purpose to monitoring and logging in normal IT infrastructure.
+
+Examples:
+
+```text
+RS-232 debug console
+serial management port
+network tap
+syslog
+Splunk-style log collection
+health checks
+metrics dashboard
+```
+
+But here, the idea is scaled down into the chip.
+
+Instead of watching servers, switches, and applications, the chip monitor watches:
+
+```text
+compute groups
+buffers
+links
+clock domains
+memory regions
+power/thermal regions
+```
+
+The equivalent idea:
+
+```text
+IT network monitoring -> chip-level communication monitoring
+```
+
+The same basic questions apply:
+
+```text
+is the link alive?
+is traffic flowing?
+is something saturated?
+did a component go silent?
+are errors increasing?
+where did the failure start?
+```
+
+The difference is that chip-level monitoring must be much more bounded and lightweight. It cannot become a full heavy logging stack in the hot path.
+
 ## What The Monitor Can Watch
 
 The monitor might watch:
