@@ -113,6 +113,71 @@ valid && ready
 
 This gives the system a controlled rhythm instead of random memory writes.
 
+## 3B. Different-Clock Communication
+
+Different group families may not share the same clock.
+
+Example:
+
+```text
+GPU family clock != CPU family clock
+```
+
+That creates a different communication problem.
+
+If the GPU groups move at one rhythm and the CPU group moves at another rhythm, they should not directly assume that one side's tick lines up with the other side's tick.
+
+A predictable buffer group can sit between them.
+
+Example:
+
+```text
+GPU Group Family -> Buffer/Adapter Group -> CPU Group Family
+```
+
+The buffer group exists to make the boundary explicit.
+
+It can handle:
+
+```text
+clock-domain crossing
+width conversion
+rate matching
+temporary storage
+valid/ready handoff
+format conversion
+```
+
+One possible idea:
+
+```text
+GPU side produces 32-bit chunks
+Buffer group stores or packs them into 64-bit registers
+CPU side reads 64-bit values at its own clock rate
+```
+
+The exact details would be worked out later.
+
+The important principle is:
+
+```text
+when clocks differ, communication needs an adapter
+```
+
+The adapter should have known limits:
+
+```text
+input width
+output width
+maximum rate
+minimum rate
+buffer depth
+overflow behavior
+latency
+```
+
+This keeps the system predictable even when the two sides run at different speeds.
+
 ## 4. Message Passing
 
 Instead of letting one group write raw data anywhere, groups can send structured messages.

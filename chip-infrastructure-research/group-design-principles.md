@@ -122,6 +122,26 @@ completion signals
 slower but more general protocols
 ```
 
+If the families use different clocks, the boundary may need a dedicated buffer or adapter group.
+
+Example:
+
+```text
+GPU family clock -> Buffer/Adapter Group -> CPU family clock
+```
+
+That buffer can translate between different rhythms and different data widths.
+
+Example idea:
+
+```text
+GPU side: 32-bit values
+adapter: packs/stores into predictable registers
+CPU side: reads 64-bit values
+```
+
+The exact design can come later. The architecture principle is that different-clock families should communicate through a boundary with known behavior.
+
 The design principle:
 
 ```text
