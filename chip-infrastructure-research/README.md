@@ -30,6 +30,15 @@ The dream is:
 specialized compute groups + specialized kernels + fast local communication
 ```
 
+The larger architecture goal is:
+
+```text
+build a communication system with known limits and capabilities,
+then keep adding compute groups that plug into it
+```
+
+The communication layer is the foundation. The groups come after.
+
 ## Possible Compute Groups
 
 ```text

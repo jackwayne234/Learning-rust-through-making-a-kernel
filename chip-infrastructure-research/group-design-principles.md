@@ -1,5 +1,37 @@
 # Group Design Principles
 
+## Overall Goal
+
+The goal is to design a system of communication with known limits and known capabilities.
+
+Once the communication system is understood, the architecture can support adding more compute groups over time.
+
+The long-term shape:
+
+```text
+known communication rules
++ known bandwidth and delay limits
++ known memory ownership rules
++ known signaling rules
+= groups that can be added without redesigning everything
+```
+
+This means the communication layer is the foundation.
+
+The groups plug into it.
+
+The dream architecture is not just:
+
+```text
+many groups
+```
+
+It is:
+
+```text
+a reliable communication system that lets us keep adding groups
+```
+
 ## Communication First, Groups Second
 
 A compute group boundary should be chosen after we understand the communication paths.
