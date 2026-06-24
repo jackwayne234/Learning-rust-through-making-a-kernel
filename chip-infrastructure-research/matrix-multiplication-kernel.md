@@ -1,0 +1,170 @@
+# Matrix Multiplication Kernel
+
+Decision:
+
+```text
+the first specialized kernel target is a matrix multiplication kernel
+```
+
+This means the first real "job kernel" should be designed around multiplying matrices, not around being a general-purpose operating system.
+
+## Why This Kernel
+
+Matrix multiplication is a good first target because it has clear inputs, clear outputs, and real architecture pressure.
+
+It forces us to think about:
+
+```text
+data movement
+buffer design
+fixed-size inputs
+output format
+parallel work
+producer/consumer routing
+monitoring
+clock and throughput limits
+```
+
+It also connects back to the optical computer work, where the data showed that wavelength selection can help with symbolic logic, but matrix multiplication eventually needs accumulation.
+
+## First Tiny Version
+
+Start with the smallest useful case:
+
+```text
+2x2 matrix A
+2x2 matrix B
+2x2 matrix C = A * B
+```
+
+Formula:
+
+```text
+C00 = A00*B00 + A01*B10
+C01 = A00*B01 + A01*B11
+C10 = A10*B00 + A11*B10
+C11 = A10*B01 + A11*B11
+```
+
+This is small enough to understand completely.
+
+## First Bare-Metal Goal
+
+The first bare-metal version can use fixed input values compiled into the kernel.
+
+Example:
+
+```text
+A = [1 2]
+    [3 4]
+
+B = [5 6]
+    [7 8]
+
+C = [19 22]
+    [43 50]
+```
+
+The first version does not need dynamic memory, files, user input, or a database.
+
+It only needs:
+
+```text
+fixed input data
+matrix multiply procedure
+fixed output storage
+some way to observe the result
+```
+
+## Observation Problem
+
+The kernel still needs a way to show or expose the result.
+
+Options:
+
+```text
+write result to screen memory
+write result to a known memory address
+halt after computation so a debugger/emulator can inspect memory
+later: send result through a ring buffer to another group
+```
+
+The cleanest next practical step is probably:
+
+```text
+make the kernel write text to the screen,
+then print the matrix result
+```
+
+## Group Architecture Version
+
+Later, this can become a specialized compute group:
+
+```text
+CPU/Coordinator Group -> Matrix Kernel Group: input matrices
+Matrix Kernel Group -> Output Buffer: result matrix
+Matrix Kernel Group -> Monitor Layer: status/health
+```
+
+Large data should not automatically return through the CPU unless the CPU needs it.
+
+Possible better path:
+
+```text
+Input Buffer -> Matrix Kernel Group -> Result Buffer -> Consumer Group
+```
+
+The CPU may only need:
+
+```text
+command
+status
+completion signal
+error code
+```
+
+## Communication Questions
+
+Before scaling the matrix kernel, define:
+
+```text
+input width
+output width
+matrix size
+number format
+buffer depth
+expected throughput
+latency tolerance
+overflow behavior
+completion signal
+monitoring signals
+```
+
+## One-Bite Roadmap
+
+1. Write one character to the screen.
+2. Print a small number.
+3. Compute fixed 2x2 matrix multiplication in the kernel.
+4. Print the 2x2 result.
+5. Move the input matrix into a known memory buffer.
+6. Move the result into a known output buffer.
+7. Add a completion/status flag.
+8. Turn the input/output into a simple message format.
+9. Later, scale beyond 2x2.
+
+## Design Principle
+
+```text
+start with the smallest matrix that proves the communication path
+```
+
+The real lesson is not only multiplication.
+
+The real lesson is:
+
+```text
+how data enters a compute group,
+how work happens,
+how the result leaves,
+and how the rest of the system knows it is done
+```

@@ -28,6 +28,23 @@ The notes are part of the project, not an afterthought.
 
 ## The Next Bites
 
+### First Specialized Kernel Target
+
+Decision:
+
+```text
+the first specialized kernel target is matrix multiplication
+```
+
+The immediate practical path is still tiny:
+
+```text
+screen output first,
+then fixed 2x2 matrix multiplication,
+then print the result,
+then move inputs and outputs through known buffers
+```
+
 ### 1. Write One Character To The Screen
 
 What we want:
