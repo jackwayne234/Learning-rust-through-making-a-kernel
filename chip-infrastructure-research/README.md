@@ -166,6 +166,14 @@ When we learn message passing, we are learning how different kernels or compute 
 7. What would a programmer's interface to this chip look like?
 8. What parts of Apple Silicon, GPUs, NPUs, and SoCs already resemble this idea?
 
+## Notes
+
+```text
+communication-models.md
+```
+
+This note explores designated memory addresses, conveyor-belt buffers, shared clocks, message passing, interrupts, and slower application-layer communication.
+
 ## First Drawing Prompt
 
 Draw one big box named:
