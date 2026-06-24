@@ -181,6 +181,7 @@ When we learn message passing, we are learning how different kernels or compute 
 buffer-adapter-design.md
 communication-models.md
 group-design-principles.md
+monitoring-layer.md
 one-bite-roadmap.md
 ```
 
@@ -189,6 +190,8 @@ The buffer adapter note tracks the idea that different-clock or different-width 
 This note explores designated memory addresses, conveyor-belt buffers, shared clocks, message passing, interrupts, and slower application-layer communication.
 
 The group design note records the architecture rule that communication should be mapped before deciding the compute group boundaries.
+
+The monitoring note describes passive link taps and out-of-band health alerts that should not slow the main data path.
 
 The roadmap note keeps the project grounded in small steps: build one tiny piece, explain it, document it, commit it, then move to the next bite.
 

@@ -182,6 +182,29 @@ large data should move directly to the group that consumes it
 small control messages can go through the CPU
 ```
 
+## Passive Monitoring
+
+Hard failures should be visible without forcing all data through a monitoring layer.
+
+Example:
+
+```text
+Producer Group -> Consumer Group
+              \
+               -> Passive Monitor Tap
+```
+
+The monitor watches health signals and broadcasts small alerts when something is down.
+
+It should not slow down the main data path.
+
+The principle:
+
+```text
+data paths carry work
+monitor paths carry health
+```
+
 This creates a hierarchy:
 
 ```text
