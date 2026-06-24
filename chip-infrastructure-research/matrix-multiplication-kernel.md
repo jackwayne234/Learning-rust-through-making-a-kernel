@@ -8,6 +8,27 @@ the first specialized target is a matrix multiplication kernel/firmware
 
 This means the first real "job controller" should be designed around multiplying matrices, not around being a general-purpose operating system.
 
+Direction:
+
+```text
+train models in the cloud
+run inference at home
+```
+
+The home kernel should be treated as an inference engine, not a training system. It should load trained weights, accept input activations, run forward-pass math, and return output activations.
+
+That keeps several things out of scope for the local kernel:
+
+```text
+gradients
+backpropagation
+optimizer state
+training data pipelines
+weight updates
+```
+
+This changes the hardware question in a useful way. The home machine does not need to be good at training. It needs to be good at repeatedly running fixed model math with predictable data movement.
+
 The better word may be firmware.
 
 For a CPU group, "kernel" makes sense because the software controls general-purpose CPU cores.
@@ -41,6 +62,30 @@ clock and throughput limits
 ```
 
 It also connects back to the optical computer work, where the data showed that wavelength selection can help with symbolic logic, but matrix multiplication eventually needs accumulation.
+
+For inference, matrix multiplication also appears directly in model execution:
+
+```text
+input activations * trained weights = output activations
+```
+
+If the trained weights are fixed, the runtime can specialize around them. Possible optimizations include pre-packed weights, transposed weight storage, cache-friendly tiling, quantization, sparsity, and fused operations such as matrix multiply plus bias plus activation.
+
+This opens more hardware options because the runtime can be shaped around the available home machine instead of forcing the home machine to fit a heavyweight training framework.
+
+Possible hardware paths:
+
+```text
+CPU SIMD
+Apple Silicon / Metal
+consumer GPUs
+integrated GPUs
+older GPUs
+NPUs
+FPGAs
+small home servers
+custom accelerator cards
+```
 
 ## First Tiny Version
 
