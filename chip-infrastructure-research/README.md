@@ -181,9 +181,11 @@ When we learn message passing, we are learning how different kernels or compute 
 buffer-adapter-design.md
 communication-models.md
 group-design-principles.md
+hardware-sovereignty-riscv-vram.md
 matrix-multiplication-kernel.md
 monitoring-layer.md
 one-bite-roadmap.md
+recommended-soc-toolchain-path.md
 ```
 
 The buffer adapter note tracks the idea that different-clock or different-width groups may need a predictable communication adapter with known limits.
@@ -192,11 +194,15 @@ This note explores designated memory addresses, conveyor-belt buffers, shared cl
 
 The group design note records the architecture rule that communication should be mapped before deciding the compute group boundaries.
 
+The hardware sovereignty note records the long-term direction: closed GPU VRAM management is a walled garden, so true control points toward open RISC-V-style hardware, simulation, and eventually FPGA prototypes.
+
 The matrix multiplication note records the first specialized target. It also notes that this may be better described as firmware or a tile controller, and tracks the open question of the most efficient matrix-grid-to-controller ratio.
 
 The monitoring note describes passive link taps and out-of-band health alerts that should not slow the main data path.
 
 The roadmap note keeps the project grounded in small steps: build one tiny piece, explain it, document it, commit it, then move to the next bite.
+
+The recommended SoC toolchain note records the practical path: use Chipyard, LiteX, Vortex, and eventually OpenROAD as scaffolding instead of trying to invent every SoC layer from scratch.
 
 ## First Drawing Prompt
 

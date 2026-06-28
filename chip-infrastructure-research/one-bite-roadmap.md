@@ -68,6 +68,37 @@ then print the result,
 then move inputs and outputs through known buffers
 ```
 
+Long-term direction:
+
+```text
+closed GPU memory management teaches the limitation;
+RISC-V/open hardware is the path toward owning the memory contract
+```
+
+The practical bridge is still small and staged:
+
+```text
+software simulation first,
+then tiny shared-buffer protocols,
+then possible FPGA/RISC-V prototypes later
+```
+
+Recommended SoC direction:
+
+```text
+do not hand-build the whole SoC from scratch;
+use existing SoC frameworks as scaffolding
+```
+
+First likely tools to study:
+
+```text
+Chipyard for RISC-V SoC generation and accelerator integration
+LiteX for FPGA-friendly SoC bring-up
+Vortex as an open RISC-V GPGPU reference
+OpenROAD much later for ASIC layout flow
+```
+
 ### 1. Write One Character To The Screen
 
 What we want:
